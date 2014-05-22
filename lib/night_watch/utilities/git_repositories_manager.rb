@@ -29,7 +29,7 @@ module NightWatch
       def create(force = false)
         prevent_overwrite unless force
         FileUtils.rm_rf(root_path) if File.exist?(root_path)
-        FileUtils.mkdir(root_path)
+        FileUtils.mkdir_p(root_path)
         origins.each { |name, uri| repo_clone(name, uri) }
       end
 
