@@ -6,15 +6,21 @@ TODO: Write a gem description
 
 Add this line to your application's Gemfile:
 
-    gem 'night_watch'
+```rb
+gem 'night_watch'
+```
 
 And then execute:
 
-    $ bundle
+```sh
+$ bundle
+```
 
 Or install it yourself as:
 
-    $ gem install night_watch
+```sh
+$ gem install night_watch
+```
 
 ## Usage
 
