@@ -1,0 +1,13 @@
+module NightWatch
+  module Utilities
+    module Workspace
+    protected
+      attr_accessor :workspace
+
+      def in_workspace(&block)
+        raise "No workspace set" if workspace.nil?
+        Dir.chdir(workspace, &block)
+      end
+    end
+  end
+end

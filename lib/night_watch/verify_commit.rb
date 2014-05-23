@@ -9,14 +9,16 @@ module NightWatch
 
   class VerifyCommit
     include Utilities::ScriptRunner
+    include Utilities::Workspace
 
-    attr_reader :repo_to_validate, :ref_to_validate, :repos, :workspace
+    attr_reader :repo_to_validate, :ref_to_validate, :repos
 
     def initialize(repo_to_validate, ref_to_validate, repos, workspace)
+      self.workspace = workspace
       @repo_to_validate = repo_to_validate
       @ref_to_validate = ref_to_validate
       @repos = repos
-      @workspace = workspace
+      @wraith = Wraith.new(workspace)
     end
 
     def find_broken_dependants(dependants_details = {})
@@ -24,24 +26,14 @@ module NightWatch
 
       with_repo_to_validate { sh("bower link") }
 
-      in_workspace do
-        sh("wraith setup")
-        FileUtils.rm_rf("shots")
-        FileUtils.mkdir("shots")
-      end
-
       instantiate_dependants(dependants_details).each do |app|
-        create_wraith_configs(app.name)
+        diff = wraith.create_diff(app.name)
         with_repo_to_validate { sh("git fetch && git reset #{ref_to_validate} --hard && git clean -fd") }
-        in_workspace { sh("wraith reset_shots #{app.name}-compare") }
-        app.prepare do
-          sh("bower install")
-          sh("bower link #{repo_to_validate}")
-        end
-        app.run { save_images(app.name, 'current') }
+        app.prepare { sh("bower link #{repo_to_validate}") }
+        app.run { diff.snapshot_current }
         with_repo_to_validate { sh("git fetch && git reset #{ref_to_validate}~1 --hard && git clean -fd") }
-        app.run { save_images(app.name, 'previous') }
-        broken << app.name if images_differ?(app.name)
+        app.run { diff.snapshot_previous }
+        broken << app.name if diff.has_changes?
       end
 
       broken
@@ -49,9 +41,7 @@ module NightWatch
 
   private
 
-    def in_workspace(&block)
-      Dir.chdir(workspace, &block)
-    end
+    attr_reader :wraith
 
     def with_repo_to_validate(&block)
       Dir.chdir(repo_to_validate_path, &block)
@@ -67,33 +57,6 @@ module NightWatch
 
         names.map { |name| app_class.new(name, repos.get_path(name)) }
       end
-    end
-
-    CONFIG_TEMPLATES = Hash[
-      %w( current previous compare ).map do |config|
-        [config, ConfigTemplate.new(File.expand_path("config_templates/#{config}.yaml.erb", File.dirname(__FILE__)))]
-      end
-    ]
-
-    def create_wraith_configs(name)
-      in_workspace do
-        CONFIG_TEMPLATES.each do |config, template|
-          File.open("configs/#{name}-#{config}.yaml", 'w') do |file|
-            file.write(template.generate(name))
-          end
-        end
-      end
-    end
-
-    def save_images(app_name, state)
-      in_workspace { sh("wraith save_images #{app_name}-#{state}") }
-    end
-
-    def images_differ?(app_name)
-      in_workspace { sh("wraith crop_images #{app_name}-compare") }
-      in_workspace { sh("wraith compare_images #{app_name}-compare") }
-
-      Dir["#{workspace}/shots/#{app_name}/**/*_data.txt"].any? { |file| Float(File.read(file)) > 0.0 }
     end
 
   end

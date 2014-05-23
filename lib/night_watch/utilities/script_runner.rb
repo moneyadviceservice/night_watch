@@ -3,6 +3,7 @@ require 'bundler'
 module NightWatch
   module Utilities
     module ScriptRunner
+    protected
       def sh(command)
         $stderr.puts "run: #{command}"
         $stderr.puts "in: #{`pwd`}"

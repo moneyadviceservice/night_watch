@@ -28,7 +28,8 @@ module NightWatch
     end
 
     def prepare(&block)
-      in_rails_root { sh_with_rvm("bundle install") }
+      bundle_install
+      bower_install
       in_path(&block) unless block.nil?
     end
 
@@ -42,9 +43,6 @@ module NightWatch
       nil
     end
 
-    def in_path(&block)
-      Dir.chdir(path, &block)
-    end
 
   protected
 
@@ -54,6 +52,18 @@ module NightWatch
 
     def in_rails_root
       Dir.chdir(rails_root) { yield }
+    end
+
+    def in_path(&block)
+      Dir.chdir(path, &block)
+    end
+
+    def bundle_install
+      in_rails_root { sh_with_rvm("bundle install") }
+    end
+
+    def bower_install
+      in_path { "bower install" }
     end
 
     def sh_with_rvm(command)
