@@ -3,12 +3,13 @@ require 'night_watch/utilities'
 module NightWatch
   class RailsApp
     include Utilities::ScriptRunner
+    include Utilities::Workspace
 
-    attr_reader :name, :path
+    attr_reader :name
 
     def initialize(name, path)
+      self.workspace = path
       @name = name
-      @path = path
     end
 
     def run(&block)
@@ -30,7 +31,7 @@ module NightWatch
     def prepare(&block)
       bundle_install
       bower_install
-      in_path(&block) unless block.nil?
+      in_workspace(&block) unless block.nil?
     end
 
     def running?
@@ -47,15 +48,11 @@ module NightWatch
   protected
 
     def rails_root
-      path
+      workspace
     end
 
     def in_rails_root
       Dir.chdir(rails_root) { yield }
-    end
-
-    def in_path(&block)
-      Dir.chdir(path, &block)
     end
 
     def bundle_install
@@ -63,7 +60,7 @@ module NightWatch
     end
 
     def bower_install
-      in_path { "bower install" }
+      in_workspace { "bower install" }
     end
 
     def sh_with_rvm(command)
@@ -72,8 +69,8 @@ module NightWatch
 
     def rvm_environment
       @rvm_environment ||= begin
-        ruby_version = IO.read(File.join(path, '.ruby-version')).chomp
-        ruby_gemset = IO.read(File.join(path, '.ruby-gemset')).chomp
+        ruby_version = IO.read(File.join(workspace, '.ruby-version')).chomp
+        ruby_gemset = IO.read(File.join(workspace, '.ruby-gemset')).chomp
 
         "#{ruby_version}@#{ruby_gemset}"
       end
