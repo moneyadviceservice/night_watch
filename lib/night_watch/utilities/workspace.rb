@@ -1,7 +1,6 @@
 module NightWatch
   module Utilities
     module Workspace
-    protected
       attr_accessor :workspace
 
       def in_workspace(&block)
