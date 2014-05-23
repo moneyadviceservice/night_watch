@@ -1,7 +1,7 @@
 require 'erb'
 
 module NightWatch
-  class ConfigTemplate
+  class WraithConfigTemplate
     attr_reader :template
 
     def initialize(path)

@@ -41,7 +41,9 @@ module NightWatch
 
     CONFIG_TEMPLATES = Hash[
       %w( current previous compare ).map do |config|
-        [config, ConfigTemplate.new(File.expand_path("wraith_config_templates/#{config}.yaml.erb", File.dirname(__FILE__)))]
+        template_path = File.expand_path("wraith_config_templates/#{config}.yaml.erb", File.dirname(__FILE__))
+
+        [config, WraithConfigTemplate.new(template_path)]
       end
     ]
 
