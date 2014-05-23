@@ -1,4 +1,5 @@
 require 'night_watch/utilities'
+require 'night_watch/wraith_config_template'
 require 'set'
 
 module NightWatch

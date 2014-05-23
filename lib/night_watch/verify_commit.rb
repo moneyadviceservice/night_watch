@@ -1,7 +1,6 @@
 require 'active_support'
 require 'active_support/core_ext/string/inflections'
 require 'night_watch/utilities'
-require 'night_watch/config_template'
 require 'night_watch/rails_app'
 require 'night_watch/rails_engine'
 
