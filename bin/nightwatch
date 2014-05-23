@@ -1,0 +1,48 @@
+#! /usr/bin/env ruby
+
+require 'bundler/setup'
+require 'commander/import'
+require 'night_watch'
+
+gemspec = eval(File.read(File.expand_path('../night_watch.gemspec', File.dirname(__FILE__))))
+
+program :version, gemspec.version.to_s
+program :description, gemspec.description
+
+default_command :help
+
+global_option('-c', '--config FILE', 'Location of config file') { |file| NightWatch::Config.config_path = file }
+
+command :validate do |c|
+  c.syntax = 'nightwatch validate REF_TO_VALIDATE'
+  c.description = 'Validates commit [REF_TO_VALIDATE] the configured repository'
+  c.option '--skip-pull', 'Changes will be pulled into all repos unless this is set'
+  c.action do |args, options|
+    ref_to_validate = args.first or raise "Must specify an argument of the ref to validate"
+
+    config = NightWatch::Config
+    repos = NightWatch::Utilities::GitRepositoriesManager.new(config.repos_location, config.origins)
+    repos.ensure_latest unless options.skip_pull
+    verify_commit = NightWatch::VerifyCommit.new(config.repo_to_validate, ref_to_validate, repos, config.workspace)
+    puts verify_commit.find_broken_dependants(config.dependants)
+  end
+end
+
+command 'workspace create' do |c|
+  c.syntax = 'nightwatch workspace create'
+  c.description = 'Create nightwatch workspace. Will clone local repos for all configured origins.'
+  c.option '--force', 'If set, will overwrite existing directories'
+  c.action do |_, options|
+    config = NightWatch::Config
+    NightWatch::Utilities::GitRepositoriesManager.new(config.repos_location, config.origins).create(options.force)
+  end
+end
+
+command 'workspace update' do |c|
+  c.syntax = 'nightwatch workspace update'
+  c.description = 'Ensure that all repos in nightwatch workspace are present and fully up to date'
+  c.action do |_, options|
+    config = NightWatch::Config
+    NightWatch::Utilities::GitRepositoriesManager.new(config.repos_location, config.origins).ensure_latest
+  end
+end
