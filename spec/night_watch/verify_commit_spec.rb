@@ -18,7 +18,7 @@ module NightWatch
       Dir[File.expand_path('../fixtures/*.tar.gz', File.dirname(__FILE__))].each do |archive|
         repo_dir = File.join(origins_dir, File.basename(archive, '.tar.gz'))
         FileUtils.mkdir_p(repo_dir)
-        Dir.chdir(repo_dir) { run("tar -xvf #{archive}") }
+        Dir.chdir(repo_dir) { sh("tar -xvf #{archive}") }
         origins << repo_dir
       end
 
@@ -38,7 +38,7 @@ module NightWatch
     describe '#find_broken_dependants' do
       it 'can identify rails applications that have been broken by a commit' do
         broken_dependants = verify_commit.find_broken_dependants(
-          apps: ['app_that_breaks', 'app_that_doesnt_break'],
+          rails_apps: ['app_that_breaks', 'app_that_doesnt_break'],
         )
 
         expect(broken_dependants).to include('app_that_breaks')
@@ -47,7 +47,7 @@ module NightWatch
 
       it 'can identify rails engines that have been broken by a commit' do
         broken_dependants = verify_commit.find_broken_dependants(
-          engines: ['engine_that_breaks', 'engine_that_doesnt_break']
+          rails_engines: ['engine_that_breaks', 'engine_that_doesnt_break']
         )
 
         expect(broken_dependants).to include('engine_that_breaks')

@@ -1,81 +1,47 @@
+require 'active_support'
+require 'active_support/core_ext/string/inflections'
 require 'night_watch/utilities'
 require 'night_watch/config_template'
+require 'night_watch/rails_app'
+require 'night_watch/rails_engine'
 
 module NightWatch
+
   class VerifyCommit
     include Utilities::ScriptRunner
 
-    CONFIG_TEMPLATES = Hash[
-      %w( current previous compare ).map do |config|
-        [config, ConfigTemplate.new(File.expand_path("config_templates/#{config}.yaml.erb", File.dirname(__FILE__)))]
-      end
-    ]
+    attr_reader :repo_to_validate, :ref_to_validate, :repos, :workspace
 
-    attr_reader :repo_to_validate, :ref_to_validate, :repo_manager, :workspace
-
-    def initialize(repo_to_validate, ref_to_validate, repo_manager, workspace)
+    def initialize(repo_to_validate, ref_to_validate, repos, workspace)
       @repo_to_validate = repo_to_validate
       @ref_to_validate = ref_to_validate
-      @repo_manager = repo_manager
+      @repos = repos
       @workspace = workspace
     end
 
-    def find_broken_dependants(apps: [], engines: [])
+    def find_broken_dependants(dependants_details = {})
       broken = []
 
-      run_in_workspace("wraith setup")
-
-      repo_manager.with_repo(repo_to_validate) do
-        run("bower link")
-      end
+      with_repo_to_validate { sh("bower link") }
 
       in_workspace do
-        FileUtils.rm_rf('shots')
-        FileUtils.mkdir('shots')
+        sh("wraith setup")
+        FileUtils.rm_rf("shots")
+        FileUtils.mkdir("shots")
       end
 
-      Array(apps).each do |app|
-        rails_server_pid = nil
-
-        create_configs(app)
-
-        run_in_workspace("wraith reset_shots #{app}-compare")
-
-        repo_manager.with_repo(repo_to_validate) do
-          run("git fetch && git reset #{ref_to_validate} --hard && git clean -fd")
+      instantiate_dependants(dependants_details).each do |app|
+        create_wraith_configs(app.name)
+        with_repo_to_validate { sh("git fetch && git reset #{ref_to_validate} --hard && git clean -fd") }
+        in_workspace { sh("wraith reset_shots #{app.name}-compare") }
+        app.prepare do
+          sh("bower install")
+          sh("bower link #{repo_to_validate}")
         end
-
-        repo_manager.with_repo(app) do
-          run_with_rvm("bundle install")
-          run("bower install")
-          run("bower link #{repo_to_validate}")
-          run_with_rvm("bundle exec rails s -d -p 3000")
-          rails_server_pid = IO.read("tmp/pids/server.pid") rescue raise("Rails didn't appear to start!")
-        end
-
-        run_in_workspace("wraith save_images #{app}-current")
-        run_in_workspace("kill -9 #{rails_server_pid}")
-
-        repo_manager.with_repo(repo_to_validate) do
-          run("git fetch && git reset #{ref_to_validate}~1 --hard && git clean -fd")
-        end
-
-        repo_manager.with_repo(app) do
-          FileUtils.rm_rf("public/assets")
-          run_with_rvm("bundle exec rails s -d -p 3000")
-          rails_server_pid = IO.read("tmp/pids/server.pid") rescue raise("Rails didn't appear to start!")
-        end
-
-        run_in_workspace("wraith save_images #{app}-previous")
-
-        run_in_workspace("kill -9 #{rails_server_pid}")
-
-        run_in_workspace("wraith crop_images #{app}-compare")
-        run_in_workspace("wraith compare_images #{app}-compare")
-
-        screenshots_differ = Dir["#{workspace}/shots/#{app}/**/*_data.txt"].any? { |file| Float(File.read(file)) > 0.0 }
-
-        broken << app if screenshots_differ
+        app.run { save_images(app.name, 'current') }
+        with_repo_to_validate { sh("git fetch && git reset #{ref_to_validate}~1 --hard && git clean -fd") }
+        app.run { save_images(app.name, 'previous') }
+        broken << app.name if images_differ?(app.name)
       end
 
       broken
@@ -87,22 +53,47 @@ module NightWatch
       Dir.chdir(workspace, &block)
     end
 
-    def run_in_workspace(command)
-      in_workspace { run(command) }
+    def with_repo_to_validate(&block)
+      Dir.chdir(repo_to_validate_path, &block)
     end
 
-    def run_with_rvm(command)
-      run("rvm $(cat .ruby-version)@$(cat .ruby-gemset) do #{command}")
+    def repo_to_validate_path
+      @repo_to_validate_path ||= repos.get_path(repo_to_validate)
     end
 
-    def create_configs(name)
-      CONFIG_TEMPLATES.each do |config, template|
-        in_workspace do
+    def instantiate_dependants(dependants_details)
+      dependants_details.flat_map do |type, names|
+        app_class = "NightWatch::#{type.to_s.classify.singularize}".constantize
+
+        names.map { |name| app_class.new(name, repos.get_path(name)) }
+      end
+    end
+
+    CONFIG_TEMPLATES = Hash[
+      %w( current previous compare ).map do |config|
+        [config, ConfigTemplate.new(File.expand_path("config_templates/#{config}.yaml.erb", File.dirname(__FILE__)))]
+      end
+    ]
+
+    def create_wraith_configs(name)
+      in_workspace do
+        CONFIG_TEMPLATES.each do |config, template|
           File.open("configs/#{name}-#{config}.yaml", 'w') do |file|
             file.write(template.generate(name))
           end
         end
       end
+    end
+
+    def save_images(app_name, state)
+      in_workspace { sh("wraith save_images #{app_name}-#{state}") }
+    end
+
+    def images_differ?(app_name)
+      in_workspace { sh("wraith crop_images #{app_name}-compare") }
+      in_workspace { sh("wraith compare_images #{app_name}-compare") }
+
+      Dir["#{workspace}/shots/#{app_name}/**/*_data.txt"].any? { |file| Float(File.read(file)) > 0.0 }
     end
 
   end

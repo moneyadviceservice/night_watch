@@ -3,7 +3,7 @@ require 'bundler'
 module NightWatch
   module Utilities
     module ScriptRunner
-      def run(command)
+      def sh(command)
         $stderr.puts "run: #{command}"
         $stderr.puts "in: #{`pwd`}"
         Bundler.with_clean_env { `#{command} 1>&2` }

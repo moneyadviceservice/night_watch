@@ -18,7 +18,7 @@ module NightWatch
 
       def ensure_latest
         origins.each do |name, uri|
-          if File.exists?(repo_location(name))
+          if File.exists?(get_p41ath(name))
             repo_pull_all(name)
           else
             repo_clone(name, uri)
@@ -34,18 +34,20 @@ module NightWatch
       end
 
       def with_repo(name)
-        path = repo_location(name)
+        path = get_path(name)
         Dir.chdir(path) { yield(path) }
       end
 
-      def repo_location(name)
+      def get_path(name)
+        raise "'#{name}' is not managed by this #{self.class.name}" unless origins.keys.include?(name.to_s)
+
         File.join(root_path, name)
       end
 
     private
 
       def repo_clone(name, uri)
-        path = repo_location(name)
+        path = get_path(name)
         $stderr.puts "Cloning repository '#{uri}' into '#{path}'"
         $stderr.puts `git clone #{uri} #{path} 2>&1`
         $stderr.puts
