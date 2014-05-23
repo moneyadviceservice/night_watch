@@ -18,7 +18,7 @@ module NightWatch
 
       def ensure_latest
         origins.each do |name, uri|
-          if File.exists?(get_p41ath(name))
+          if File.exists?(get_path(name))
             repo_pull_all(name)
           else
             repo_clone(name, uri)
