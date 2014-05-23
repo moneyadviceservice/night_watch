@@ -18,7 +18,7 @@ module NightWatch
       Dir[File.expand_path('../fixtures/*.tar.gz', File.dirname(__FILE__))].each do |archive|
         repo_dir = File.join(origins_dir, File.basename(archive, '.tar.gz'))
         FileUtils.mkdir_p(repo_dir)
-        Dir.chdir(repo_dir) { sh("tar -xvf #{archive}") }
+        Dir.chdir(repo_dir) { sh("tar -xf #{archive}") }
         origins << repo_dir
       end
 
