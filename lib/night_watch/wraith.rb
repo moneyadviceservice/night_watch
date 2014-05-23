@@ -8,7 +8,6 @@ module NightWatch
 
     def initialize(workspace)
       self.workspace = workspace
-      setup
     end
 
     def setup
@@ -20,7 +19,10 @@ module NightWatch
     end
 
     def create_diff(name)
-      WraithDiff.new(name, workspace)
+      diff = WraithDiff.new(name, workspace)
+      diff.setup
+
+      diff
     end
   end
 end

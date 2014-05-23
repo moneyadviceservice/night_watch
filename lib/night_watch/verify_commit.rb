@@ -18,7 +18,6 @@ module NightWatch
       @repo_to_validate = repo_to_validate
       @ref_to_validate = ref_to_validate
       @repos = repos
-      @wraith = Wraith.new(workspace)
     end
 
     def find_broken_dependants(dependants_details = {})
@@ -41,7 +40,9 @@ module NightWatch
 
   private
 
-    attr_reader :wraith
+    def wraith
+      @wraith ||= Wraith.new(workspace).tap { |w| w.setup }
+    end
 
     def with_repo_to_validate(&block)
       Dir.chdir(repo_to_validate_path, &block)

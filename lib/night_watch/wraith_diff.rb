@@ -12,6 +12,9 @@ module NightWatch
       self.workspace = workspace
       @name = name
       @saved = Set.new
+    end
+
+    def setup
       create_wraith_configs
       clear_old_images
     end
