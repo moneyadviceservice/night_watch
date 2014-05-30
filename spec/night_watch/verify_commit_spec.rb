@@ -38,7 +38,10 @@ module NightWatch
     describe '#find_broken_dependants' do
       it 'can identify rails applications that have been broken by a commit' do
         broken_dependants = verify_commit.find_broken_dependants(
-          rails_apps: ['app_that_breaks', 'app_that_doesnt_break'],
+          rails_apps: {
+            'app_that_breaks' => ['/'],
+            'app_that_doesnt_break' => ['/styleguide/all']
+          }
         )
 
         expect(broken_dependants).to include('app_that_breaks')
@@ -47,7 +50,10 @@ module NightWatch
 
       it 'can identify rails engines that have been broken by a commit' do
         broken_dependants = verify_commit.find_broken_dependants(
-          rails_engines: ['engine_that_breaks', 'engine_that_doesnt_break']
+          rails_engines: {
+            'engine_that_breaks' => ['/styleguide'],
+            'engine_that_doesnt_break' => ['/styleguide/all']
+          }
         )
 
         expect(broken_dependants).to include('engine_that_breaks')

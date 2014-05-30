@@ -25,7 +25,7 @@ screen_widths:
 
 #Type page URL paths below, here are a couple of examples
 paths:
-  - /styleguide/all
+<%= paths.map { |p| "  - #{p}" }.join("\n") %>
 
 # If you don't want to name the paths explicitly you can use a yaml
 # collection as follows, and names will be derived by replacing / with _

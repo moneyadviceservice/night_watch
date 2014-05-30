@@ -7,11 +7,11 @@ module NightWatch
     def initialize(path)
       erb = ERB.new(IO.read(path))
       erb.filename = path
-      @template = erb.def_class(Struct.new(:name), 'render()')
+      @template = erb.def_class(Struct.new(:name, :paths), 'render()')
     end
 
-    def generate(name)
-      template.new(name).render
+    def generate(name, paths)
+      template.new(name, paths).render
     end
   end
 end

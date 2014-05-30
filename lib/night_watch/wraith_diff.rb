@@ -7,11 +7,12 @@ module NightWatch
     include Utilities::ScriptRunner
     include Utilities::Workspace
 
-    attr_reader :name
+    attr_reader :name, :paths
 
-    def initialize(name, workspace)
+    def initialize(name, paths, workspace)
       self.workspace = workspace
       @name = name
+      @paths = paths
       @saved = Set.new
     end
 
@@ -52,7 +53,7 @@ module NightWatch
       in_workspace do
         CONFIG_TEMPLATES.each do |config, template|
           File.open("configs/#{name}-#{config}.yaml", 'w') do |file|
-            file.write(template.generate(name))
+            file.write(template.generate(name, paths))
           end
         end
       end

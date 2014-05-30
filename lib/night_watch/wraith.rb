@@ -18,8 +18,8 @@ module NightWatch
       end
     end
 
-    def create_diff(name)
-      diff = WraithDiff.new(name, workspace)
+    def create_diff(name, paths)
+      diff = WraithDiff.new(name, paths, workspace)
       diff.setup
 
       diff
