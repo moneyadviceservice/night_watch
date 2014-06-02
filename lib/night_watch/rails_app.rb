@@ -29,6 +29,7 @@ module NightWatch
     end
 
     def prepare(&block)
+      ensure_rvm_gemset
       bundle_install
       bower_install
       in_workspace(&block) unless block.nil?
@@ -63,17 +64,24 @@ module NightWatch
       in_workspace { "bower install" }
     end
 
+    def ensure_rvm_gemset
+      sh_with_rvm("rvm gemset create #{ruby_gemset}")
+    end
+
     def sh_with_rvm(command)
       sh("rvm #{rvm_environment} do #{command}")
     end
 
     def rvm_environment
-      @rvm_environment ||= begin
-        ruby_version = IO.read(File.join(workspace, '.ruby-version')).chomp
-        ruby_gemset = IO.read(File.join(workspace, '.ruby-gemset')).chomp
+      @rvm_environment ||= "#{ruby_version}@#{ruby_gemset}"
+    end
 
-        "#{ruby_version}@#{ruby_gemset}"
-      end
+    def ruby_gemset
+      @ruby_gemset ||= IO.read(File.join(workspace, '.ruby-gemset')).chomp
+    end
+
+    def ruby_version
+      @ruby_version ||= IO.read(File.join(workspace, '.ruby-version')).chomp
     end
 
   end
