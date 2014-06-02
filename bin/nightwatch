@@ -24,7 +24,16 @@ command :validate do |c|
     repos = NightWatch::Utilities::GitRepositoriesManager.new(config.repos_location, config.origins)
     repos.ensure_latest unless options.skip_pull
     verify_commit = NightWatch::VerifyCommit.new(config.repo_to_validate, ref_to_validate, repos, config.workspace)
-    puts verify_commit.find_broken_dependants(config.dependants)
+    broken_dependants = verify_commit.find_broken_dependants(config.dependants)
+
+    if broken_dependants.any?
+      puts "Broken: #{broken_dependants.join(', ')}"
+
+      failure_report = NightWatch::FailureReport.new(config.repo_to_validate, ref_to_validate, broken_dependants, config.workspace)
+      failure_report.generate
+    else
+      puts "No issues found"
+    end
   end
 end
 
