@@ -28,6 +28,7 @@ module NightWatch
     def stop
       puts "Stopping #{self.class.name}: #{name}"
       sh("kill -9 #{pid}") if running?
+      raise "Could stop start application #{name}" if running?
     end
 
     def prepare(&block)
