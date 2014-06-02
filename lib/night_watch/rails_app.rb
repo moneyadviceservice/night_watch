@@ -20,11 +20,13 @@ module NightWatch
     end
 
     def start
+      puts "Starting #{self.class.name}: #{name}"
       in_rails_root { sh_with_rvm("bundle exec rails s -d -p 3333") }
       raise "Could not start application #{name}" unless running?
     end
 
     def stop
+      puts "Stopping #{self.class.name}: #{name}"
       sh("kill -9 #{pid}") if running?
     end
 
