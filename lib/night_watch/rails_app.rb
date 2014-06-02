@@ -65,7 +65,7 @@ module NightWatch
     end
 
     def ensure_rvm_gemset
-      sh_with_rvm("rvm gemset create #{ruby_gemset}")
+      sh("rvm #{ruby_version} do rvm gemset create #{ruby_gemset}")
     end
 
     def sh_with_rvm(command)
