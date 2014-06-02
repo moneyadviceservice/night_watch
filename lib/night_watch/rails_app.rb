@@ -1,4 +1,5 @@
 require 'night_watch/utilities'
+require 'timeout'
 
 module NightWatch
   class RailsApp
@@ -22,7 +23,7 @@ module NightWatch
     def start
       puts "Starting #{self.class.name}: #{name}"
       in_rails_root { sh_with_rvm("bundle exec rails s -d -p 3333") }
-      raise "Could not start application #{name}" unless running?
+      raise_unless_running
     end
 
     def stop
@@ -49,6 +50,12 @@ module NightWatch
 
 
   protected
+
+    def raise_unless_running
+      Timeout.timeout(2) { sleep(0.1) until running? }
+    rescue Timeout::Error
+      raise "Could not start application #{name}"
+    end
 
     def rails_root
       workspace
