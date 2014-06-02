@@ -54,6 +54,7 @@ module NightWatch
     def raise_unless_running
       Timeout.timeout(2) { sleep(0.1) until running? }
     rescue Timeout::Error
+      $stderr.puts "Could not start application #{name}"
       raise "Could not start application #{name}"
     end
 
