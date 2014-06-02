@@ -3,8 +3,9 @@ require 'mail'
 module NightWatch
   class Mailer
 
-    def initialize(alerts_email_address, failure_report_path, repo_to_validate, ref_to_validate, broken_dependants)
-      @alerts_email_address = alerts_email_address
+    def initialize(to, from, failure_report_path, repo_to_validate, ref_to_validate, broken_dependants)
+      @to = to
+      @from = from
       @failure_report_path = failure_report_path
       @repo_to_validate = repo_to_validate
       @ref_to_validate = ref_to_validate
@@ -15,8 +16,8 @@ module NightWatch
       mail = Mail.new
       mail.delivery_method :sendmail
 
-      mail.to(alerts_email_address)
-      mail.from("gareth@moneyadviceservice.org.uk")
+      mail.to(to)
+      mail.from(from)
       mail.subject(email_subject)
       mail.body(email_body)
       mail.add_file(failure_report_path)
@@ -26,7 +27,7 @@ module NightWatch
 
   private
 
-    attr_reader :alerts_email_address, :failure_report_path, :repo_to_validate, :ref_to_validate, :broken_dependants
+    attr_reader :to, :from, :failure_report_path, :repo_to_validate, :ref_to_validate, :broken_dependants
 
     def email_subject
       "Night Watch alert: #{repo_to_validate}, #{ref_to_validate}"
