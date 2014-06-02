@@ -7,7 +7,7 @@ module NightWatch
 
     before(:all) do
       test_tmp_dir = File.expand_path('../tmp', File.dirname(__FILE__))
-      FileUtils.rm_rf(test_tmp_dir)
+      sh("rm -rf #{test_tmp_dir}")
 
       @workspace_dir = File.expand_path('workspace', test_tmp_dir)
       FileUtils.mkdir_p(@workspace_dir)
