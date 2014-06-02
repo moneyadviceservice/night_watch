@@ -31,6 +31,11 @@ command :validate do |c|
 
       failure_report = NightWatch::FailureReport.new(config.repo_to_validate, ref_to_validate, broken_dependants, config.workspace)
       failure_report.generate
+
+      mailer = NightWatch::Mailer.new(config.alerts_email_address, failure_report.path, config.repo_to_validate, ref_to_validate, broken_dependants)
+      mailer.deliver
+
+      puts "Failure report sent to '#{config.alerts_email_address}'"
     else
       puts "No issues found"
     end
