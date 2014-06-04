@@ -9,12 +9,13 @@ module NightWatch
   class VerifyCommit
     include Utilities::Workspace
 
-    attr_reader :repo_to_validate_name, :ref_to_validate, :repos
+    attr_reader :repo_to_validate_name, :ref_left, :ref_right, :repos
 
-    def initialize(repo_to_validate_name, ref_to_validate, repos, workspace)
+    def initialize(repo_to_validate_name, ref_left, ref_right, repos, workspace)
       self.workspace = workspace
       @repo_to_validate_name = repo_to_validate_name
-      @ref_to_validate = ref_to_validate
+      @ref_left = ref_left
+      @ref_right = ref_right
       @repos = repos
     end
 
@@ -26,11 +27,11 @@ module NightWatch
         app.prepare
         repo_to_validate.link_to(app)
 
-        repo_to_validate.reset_to(ref_to_validate)
-        app.run { diff.snapshot_current }
+        repo_to_validate.reset_to(ref_left)
+        app.run { diff.snapshot_left }
 
-        repo_to_validate.reset_to("#{ref_to_validate}~1")
-        app.run { diff.snapshot_previous }
+        repo_to_validate.reset_to(ref_right)
+        app.run { diff.snapshot_right }
 
         broken << app.name if diff.has_changes?
       end

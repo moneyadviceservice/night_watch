@@ -29,7 +29,8 @@ module NightWatch
     let(:verify_commit) do
       VerifyCommit.new(
         'repo_to_validate',
-        'REF_TO_TEST',
+        'REF_TO_TEST~1', # baseline ref
+        'REF_TO_TEST', # ref to test
         @repo_manager,
         @workspace_dir,
       )

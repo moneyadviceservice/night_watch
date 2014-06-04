@@ -23,16 +23,16 @@ command :validate do |c|
     config = NightWatch::Config
     repos = NightWatch::Utilities::GitRepositoriesManager.new(config.repos_location, config.origins)
     repos.ensure_latest unless options.skip_pull
-    verify_commit = NightWatch::VerifyCommit.new(config.repo_to_validate, ref_to_validate, repos, config.workspace)
+    verify_commit = NightWatch::VerifyCommit.new(config.repo_to_validate, "#{ref_to_validate}~1", ref_to_validate, repos, config.workspace)
     broken_dependants = verify_commit.find_broken_dependants(config.dependants)
 
     if broken_dependants.any?
       puts "Broken: #{broken_dependants.join(', ')}"
 
-      failure_report = NightWatch::FailureReport.new(config.repo_to_validate, ref_to_validate, broken_dependants, config.workspace)
+      failure_report = NightWatch::FailureReport.new(config.repo_to_validate, "#{ref_to_validate}~1", ref_to_validate, broken_dependants, config.workspace)
       failure_report.generate
 
-      mailer = NightWatch::Mailer.new(config.alerts_email_address, config.from_email_address, failure_report.path, config.repo_to_validate, ref_to_validate, broken_dependants)
+      mailer = NightWatch::Mailer.new(config.alerts_email_address, config.from_email_address, failure_report.path, config.repo_to_validate, "#{ref_to_validate}~1", ref_to_validate, broken_dependants)
       mailer.deliver
 
       puts "Failure report sent to '#{config.alerts_email_address}'"

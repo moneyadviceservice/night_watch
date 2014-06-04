@@ -21,12 +21,12 @@ module NightWatch
       clear_old_images
     end
 
-    def snapshot_current
-      save_images(:current)
+    def snapshot_left
+      save_images(:left)
     end
 
-    def snapshot_previous
-      save_images(:previous)
+    def snapshot_right
+      save_images(:right)
     end
 
     def has_changes?
@@ -42,7 +42,7 @@ module NightWatch
     attr_reader :saved
 
     CONFIG_TEMPLATES = Hash[
-      %w( current previous compare ).map do |config|
+      %w( left right compare ).map do |config|
         template_path = File.expand_path("wraith_config_templates/#{config}.yaml.erb", File.dirname(__FILE__))
 
         [config, WraithConfigTemplate.new(template_path)]
@@ -69,8 +69,8 @@ module NightWatch
     end
 
     def ensure_ready_for_diff
-      unless [:previous, :current].all? { |s| saved.include?(s) }
-        raise "You must snapshot current and previous state before comparing images"
+      unless [:right, :left].all? { |s| saved.include?(s) }
+        raise "You must snapshot left and right state before comparing images"
       end
     end
 

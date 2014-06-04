@@ -3,11 +3,12 @@ require 'mail'
 module NightWatch
   class Mailer
 
-    def initialize(to, from, failure_report_path, repo_to_validate, ref_to_validate, broken_dependants)
+    def initialize(to, from, failure_report_path, repo_to_validate, ref_baseline, ref_to_validate, broken_dependants)
       @to = to
       @from = from
       @failure_report_path = failure_report_path
       @repo_to_validate = repo_to_validate
+      @ref_baseline = ref_baseline
       @ref_to_validate = ref_to_validate
       @broken_dependants = broken_dependants
     end
@@ -39,7 +40,7 @@ module NightWatch
 %Q{
 Night Watch found potential problems with commit "#{ref_to_validate}" of "#{repo_to_validate}"!
 
-The following dependants changed:
+The following dependants changed (when validated against #{ref_baseline}:
 #{broken_dependants_list}
 }
     end
