@@ -14,25 +14,29 @@ default_command :help
 global_option('-c', '--config FILE', 'Location of config file') { |file| NightWatch::Config.config_path = file }
 
 command :validate do |c|
-  c.syntax = 'nightwatch validate REF_TO_VALIDATE'
-  c.description = 'Validates commit [REF_TO_VALIDATE] the configured repository'
+  c.syntax = 'nightwatch validate REF_RANGE_TO_VALIDATE'
+  c.description = 'Validates commit [REF_RANGE_TO_VALIDATE] the configured repository'
   c.option '--skip-pull', 'Changes will be pulled into all repos unless this is set'
   c.action do |args, options|
-    ref_to_validate = args.first or raise "Must specify an argument of the ref to validate"
+    raise "Must specify an argument of the ref range to validate" unless args.first
 
     config = NightWatch::Config
     repos = NightWatch::Utilities::GitRepositoriesManager.new(config.repos_location, config.origins)
     repos.ensure_latest unless options.skip_pull
-    verify_commit = NightWatch::VerifyCommit.new(config.repo_to_validate, "#{ref_to_validate}~1", ref_to_validate, repos, config.workspace)
+
+    ref_range = NightWatch::RefRange.parse(args.first)
+    baseline_ref = NightWatch::RefResolver.new(repos.get_path(config.repo_to_validate)).find_baseline(ref_range.from)
+
+    verify_commit = NightWatch::VerifyCommit.new(config.repo_to_validate, baseline_ref, ref_range.to, repos, config.workspace)
     broken_dependants = verify_commit.find_broken_dependants(config.dependants)
 
     if broken_dependants.any?
       puts "Broken: #{broken_dependants.join(', ')}"
 
-      failure_report = NightWatch::FailureReport.new(config.repo_to_validate, "#{ref_to_validate}~1", ref_to_validate, broken_dependants, config.workspace)
+      failure_report = NightWatch::FailureReport.new(config.repo_to_validate, baseline_ref, ref_range, broken_dependants, config.workspace)
       failure_report.generate
 
-      mailer = NightWatch::Mailer.new(config.alerts_email_address, config.from_email_address, failure_report.path, config.repo_to_validate, "#{ref_to_validate}~1", ref_to_validate, broken_dependants)
+      mailer = NightWatch::Mailer.new(config.alerts_email_address, config.from_email_address, failure_report.path, config.repo_to_validate, baseline_ref, ref_range, broken_dependants)
       mailer.deliver
 
       puts "Failure report sent to '#{config.alerts_email_address}'"

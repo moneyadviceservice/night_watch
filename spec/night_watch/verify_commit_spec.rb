@@ -1,4 +1,5 @@
-require 'night_watch'
+require 'night_watch/verify_commit'
+require 'night_watch/utilities'
 require 'fileutils'
 
 module NightWatch
@@ -9,13 +10,13 @@ module NightWatch
       test_tmp_dir = File.expand_path('../tmp', File.dirname(__FILE__))
       sh("rm -rf #{test_tmp_dir}")
 
-      @workspace_dir = File.expand_path('workspace', test_tmp_dir)
+      @workspace_dir = File.expand_path('verify_commit/workspace', test_tmp_dir)
       FileUtils.mkdir_p(@workspace_dir)
 
       origins = []
-      origins_dir = File.expand_path('origins', test_tmp_dir)
+      origins_dir = File.expand_path('verify_commit/origins', test_tmp_dir)
       FileUtils.mkdir_p(origins_dir)
-      Dir[File.expand_path('../fixtures/*.tar.gz', File.dirname(__FILE__))].each do |archive|
+      Dir[File.expand_path('../fixtures/verify_commit/*.tar.gz', File.dirname(__FILE__))].each do |archive|
         repo_dir = File.join(origins_dir, File.basename(archive, '.tar.gz'))
         FileUtils.mkdir_p(repo_dir)
         Dir.chdir(repo_dir) { sh("tar -xzf #{archive}") }

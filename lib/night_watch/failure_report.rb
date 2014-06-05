@@ -5,10 +5,10 @@ module NightWatch
     include Utilities::Workspace
     include Utilities::ScriptRunner
 
-    def initialize(repo, ref_to_validate, ref_baseline, broken_dependants, workspace)
+    def initialize(repo, ref_range_to_validate, ref_baseline, broken_dependants, workspace)
       self.workspace = workspace
       @repo = repo
-      @ref_to_validate = ref_to_validate
+      @ref_range_to_validate = ref_range_to_validate
       @ref_baseline = ref_baseline
       @broken_dependants = broken_dependants
     end
@@ -19,18 +19,18 @@ module NightWatch
     end
 
     def path
-      @path ||= File.join(workspace, "#{repo}_#{ref_to_validate}_issues.tar.gz")
+      @path ||= File.join(workspace, "#{repo}_#{ref_range_to_validate}_issues.tar.gz")
     end
 
   private
 
-    attr_reader :repo, :ref_to_validate, :ref_baseline, :broken_dependants
+    attr_reader :repo, :ref_range_to_validate, :ref_baseline, :broken_dependants
 
     def write_readme
       in_workspace do
         File.open('readme.txt', 'w') do |f|
           f.puts "Repo: #{repo}"
-          f.puts "Problem ref: #{ref_to_validate}"
+          f.puts "Problem ref: #{ref_range_to_validate}"
           f.puts "Validated against: #{ref_baseline}"
           f.puts "Broken dependants:"
           f.puts *broken_dependants.map { |bd| " - #{bd}"}
