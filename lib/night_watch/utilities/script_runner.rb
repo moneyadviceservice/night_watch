@@ -3,7 +3,7 @@ require 'bundler'
 module NightWatch
   module Utilities
     module ScriptRunner
-    protected
+
       def sh(command, return_std_out = false)
         to_run = command.dup
         to_run << ' 1>&2' unless return_std_out
@@ -17,6 +17,9 @@ module NightWatch
 
         output
       end
+
+      module_function :sh
+
     end
   end
 end

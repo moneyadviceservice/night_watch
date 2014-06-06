@@ -3,6 +3,7 @@
 require 'bundler/setup'
 require 'commander/import'
 require 'night_watch'
+require 'fileutils'
 
 gemspec = eval(File.read(File.expand_path('../night_watch.gemspec', File.dirname(__FILE__))))
 
@@ -21,6 +22,10 @@ command :validate do |c|
     raise "Must specify an argument of the ref range to validate" unless args.first
 
     config = NightWatch::Config
+
+    NightWatch::Utilities::ScriptRunner.sh("rm -rf #{config.workspace}")
+    NightWatch::Utilities::ScriptRunner.sh("mkdir -p #{config.workspace}")
+
     repos = NightWatch::Utilities::GitRepositoriesManager.new(config.repos_location, config.origins)
     repos.ensure_latest unless options.skip_pull
 
