@@ -22,8 +22,8 @@ module NightWatch
     def find_broken_dependants(dependants_details = {})
       broken = []
 
-      instantiate_dependants(dependants_details).each do |app, paths|
-        diff = wraith.create_diff(app.name, paths)
+      with_each_dependant(dependants_details) do |app, urls_to_snapshot|
+        diff = wraith.create_diff(app.name, urls_to_snapshot)
         app.prepare
         repo_to_validate.link_to(app)
 
@@ -51,14 +51,16 @@ module NightWatch
         .tap { |r| r.setup }
     end
 
-    def instantiate_dependants(dependants_details)
-      dependants_details.flat_map do |type, names_and_paths|
+    def with_each_dependant(dependants_details, &block)
+      apps = dependants_details.flat_map do |type, names_and_paths|
         app_class = "NightWatch::#{type.to_s.classify.singularize}".constantize
 
         names_and_paths.map do |name, paths|
           [app_class.new(name, repos.get_path(name)), paths]
         end
       end
+
+      apps.each(&block)
     end
 
   end
