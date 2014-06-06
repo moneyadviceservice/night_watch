@@ -26,9 +26,12 @@ module NightWatch
 
     attr_reader :repo, :ref_range_to_validate, :ref_baseline, :broken_dependants
 
+    README_FILENAME = 'readme.txt'
+    private_constant :README_FILENAME
+
     def write_readme
       in_workspace do
-        File.open('readme.txt', 'w') do |f|
+        File.open(README_FILENAME, 'w') do |f|
           f.puts "Repo: #{repo}"
           f.puts "Problem ref: #{ref_range_to_validate}"
           f.puts "Validated against: #{ref_baseline}"
@@ -43,7 +46,7 @@ module NightWatch
     end
 
     def tarball_contents
-      broken_dependants.map { |bd| "shots/#{bd}" } + ['readme']
+      broken_dependants.map { |bd| "shots/#{bd}" } + [README_FILENAME]
     end
 
   end
