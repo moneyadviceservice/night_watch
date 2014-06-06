@@ -21,7 +21,7 @@ module NightWatch
     attr_reader :repos, :repo_name
 
     def all_parent_commits_for(ref)
-      in_workspace { sh("git show #{ref}^@ --quiet --pretty=format:%H", true).lines.map(&:chomp) }
+      in_workspace { sh("git show #{ref}^@ -s --format=format:%H", true).lines.map(&:chomp) }
     end
 
     def merge_base_of(refs)
