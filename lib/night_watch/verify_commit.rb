@@ -3,6 +3,8 @@ require 'active_support/core_ext/string/inflections'
 require 'night_watch/utilities'
 require 'night_watch/rails_app'
 require 'night_watch/rails_engine'
+require 'night_watch/wraith'
+require 'night_watch/bower_repo_to_validate'
 
 module NightWatch
 
