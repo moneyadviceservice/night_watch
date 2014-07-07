@@ -21,7 +21,7 @@ module NightWatch
     end
 
     def reset_to(ref)
-      in_workspace { sh("git fetch && git reset #{ref} --hard && git clean -fd") }
+      in_workspace { sh("git fetch && git reset #{ref} --hard && git clean -fxd") }
     end
   end
 end
